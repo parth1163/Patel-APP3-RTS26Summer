@@ -100,6 +100,7 @@ Binary semaphores go through the FreeRTOS queue, which adds overhead and increas
 
 The increase in worst-case latency under `WITH_LOAD = 1` comes from CPU contention on Core 1:
 
+P stands for Priority
 ```text
 ========================================================================================
 CPU 1: No Load (ms)
@@ -116,9 +117,9 @@ CPU 1: Load (ms)  — (Scenario: Button ISR fires mid-execution after Task A rel
 0         10        20        30        40        50        60        70        80
 +---------+---------+---------+---------+---------+---------+---------+---------+----->
 [█████████] Task A (P15) runs and holds CPU core
-          [█] Button ISR fires and requests context yield
+          [█] Button ISR fires and requests context
              [█] Task Sem (P12) bottom half executes
              [█] Task Notif (P12) bottom half executes
-                [██████████] Task B (P10) resumes execution after Safety tasks exit
+                [██████████] Task B (P10) resumes execution after Safety tasks 
                            [█████████████████████] Task C (P5) runs
                                                  [████████████████████████████] Task D (P2)
