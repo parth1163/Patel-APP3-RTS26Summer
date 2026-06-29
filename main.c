@@ -114,34 +114,34 @@ static volatile int64_t last_edge_us;
  * ============================================================ */
 static void IRAM_ATTR button_isr(void *arg)
 {
-    //ISR Rule Compliance, keep exec time bounded
+    //ISR Rule Compliance, bounded exec to so that ISR is short
     int64_t now = esp_timer_get_time();
  
-    //ISR Compliance filtering out mechanical issues
+    //ISR Compliance filtering ouu noise
     /* Debounce: drop edges within DEBOUNCE_US of last accepted one. */
     if (now - last_edge_us < DEBOUNCE_US) return;
     last_edge_us = now;
-
+    // ISR Rule Compliance, GPIO toggle for logic analyzer
     /* 1. Toggle the scope output HIGH so the logic analyzer can see ISR entry. */
     gpio_set_level(ISR_PULSE_GPIO, 1);
-
+    // ISR Rule Compliance, Volatile variable
     isr_entry_time_us = now;
     presses_observed++;
-
+   
     BaseType_t higher_woken = pdFALSE;
-    //ISR Rule, use nonblocking (FromISR)
+    //ISR Rule Compliance, use nonblocking (FromISR)
     /* 2. Signal via binary semaphore.
      *    Multiple presses while taken can be LOST — binary sem has no count. */
     xSemaphoreGiveFromISR(btn_sem, &higher_woken);
 
-    //ISR Rule, use nonblocking (FromISR)
+    //ISR Rule Compliance, use nonblocking (FromISR)
     /* 3. Signal via direct task notification.
      *    Faster than the semaphore on most ports; one-to-one. */
     vTaskNotifyGiveFromISR(task_notif_handle, &higher_woken);
-
+    //ISR Rule Complaince, clear logic analyzer
     /* 4. Toggle scope output LOW — ISR is about to return. */
     gpio_set_level(ISR_PULSE_GPIO, 0);
-
+    //ISR Rule Compliance, unblock higher prio task
     /* 5. Request a context switch on ISR exit if a higher-priority task is ready. */
     portYIELD_FROM_ISR(higher_woken);
 }
