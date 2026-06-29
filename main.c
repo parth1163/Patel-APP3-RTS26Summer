@@ -114,8 +114,10 @@ static volatile int64_t last_edge_us;
  * ============================================================ */
 static void IRAM_ATTR button_isr(void *arg)
 {
+    //ISR Rule Compliance, keep exec time bounded
     int64_t now = esp_timer_get_time();
-
+ 
+    //ISR Compliance filtering out mechanical issues
     /* Debounce: drop edges within DEBOUNCE_US of last accepted one. */
     if (now - last_edge_us < DEBOUNCE_US) return;
     last_edge_us = now;
@@ -127,11 +129,12 @@ static void IRAM_ATTR button_isr(void *arg)
     presses_observed++;
 
     BaseType_t higher_woken = pdFALSE;
-
+    //ISR Rule, use nonblocking (FromISR)
     /* 2. Signal via binary semaphore.
      *    Multiple presses while taken can be LOST — binary sem has no count. */
     xSemaphoreGiveFromISR(btn_sem, &higher_woken);
 
+    //ISR Rule, use nonblocking (FromISR)
     /* 3. Signal via direct task notification.
      *    Faster than the semaphore on most ports; one-to-one. */
     vTaskNotifyGiveFromISR(task_notif_handle, &higher_woken);
